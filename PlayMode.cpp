@@ -170,7 +170,7 @@ void PlayMode::update(float elapsed) {
 	glm::vec3 ball_proj = ball->position - dist * norm;
 	if (std::abs(ball_proj.x) > 10.0f * std::cos(board_rotation.y) ||
 		std::abs(ball_proj.y) > 10.0f * std::cos(board_rotation.x)) {
-		on_board = false;
+		if (dist <= 2.0f) on_board = false;
 	}
 
 	// make sure ball doesn't go through board
@@ -188,13 +188,16 @@ void PlayMode::update(float elapsed) {
 			if (dist < true_dist) ball->position += norm * (true_dist - dist);
 		}
 		else if (dist >= 0 &&
-			std::abs(ball_proj.y) > 10.0f * std::cos(board_rotation.x) &&
-			std::abs(ball_proj.y) < 11.0f * std::cos(board_rotation.x)) {
+			     std::abs(ball_proj.y) > 10.0f * std::cos(board_rotation.x) &&
+			     std::abs(ball_proj.y) < 11.0f * std::cos(board_rotation.x)) {
 			float out_dist = std::abs(ball_proj.y) / std::cos(board_rotation.x) - 10.0f;
 			float true_dist = 1.0f + std::sqrt(1.0f - out_dist * out_dist);
 			if (dist < true_dist) ball->position += norm * (true_dist - dist);
 		}
 	}
+	
+	// update velocity based on final position of the ball
+	if (elapsed > 0) ball_vel = (ball->position - old_pos) / elapsed;
 
 	//reset button press counters:
 	left.downs = 0;
