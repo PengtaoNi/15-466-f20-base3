@@ -13,9 +13,9 @@ struct PlayMode : Mode {
 	virtual ~PlayMode();
 
 	//functions called by main loop:
-	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
+	virtual bool handle_event(SDL_Event const&, glm::uvec2 const& window_size) override;
 	virtual void update(float elapsed) override;
-	virtual void draw(glm::uvec2 const &drawable_size) override;
+	virtual void draw(glm::uvec2 const& drawable_size) override;
 
 	//----- game state -----
 
@@ -28,21 +28,21 @@ struct PlayMode : Mode {
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
-	//hexapod leg to wobble:
-	Scene::Transform *hip = nullptr;
-	Scene::Transform *upper_leg = nullptr;
-	Scene::Transform *lower_leg = nullptr;
-	glm::quat hip_base_rotation;
-	glm::quat upper_leg_base_rotation;
-	glm::quat lower_leg_base_rotation;
-	float wobble = 0.0f;
+	bool restart = true;
 
-	glm::vec3 get_leg_tip_position();
+	Scene::Transform* board = nullptr;
+	Scene::Transform* ball = nullptr;
+	glm::vec3 board_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	//music coming from the tip of the leg (as a demonstration):
-	std::shared_ptr< Sound::PlayingSample > leg_tip_loop;
-	
+	bool on_board = true;
+	float ball_mass = 1.0f;
+	glm::vec3 ball_acc = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 ball_vel = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	glm::vec2 wind = glm::vec2(0.0f, 0.0f);
+	bool no_wind = false;
+
 	//camera:
-	Scene::Camera *camera = nullptr;
+	Scene::Camera* camera = nullptr;
 
 };
