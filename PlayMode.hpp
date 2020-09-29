@@ -41,8 +41,13 @@ struct PlayMode : Mode {
 	float old_dist = 2.0f;
 	glm::vec3 old_norm = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	glm::vec2 wind = glm::vec2(0.0f, 0.0f);
+	// wind.x corresponds to x direction of the wind
+	// wind.y corresponds to y direction of the wind
+	// wind.z corresponds to strenght of the wind
+	glm::vec3 wind = glm::vec3(0.0f, 0.0f, 0.0f); 
 	bool no_wind = false;
+
+	float counter = 0.0f;
 
 	//camera:
 	Scene::Camera* camera = nullptr;

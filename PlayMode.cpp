@@ -40,6 +40,12 @@ Load< Scene > balance_scene(LoadTagDefault, []() -> Scene const* {
 Load< Sound::Sample > chime_sample(LoadTagDefault, []() -> Sound::Sample const* {
 	return new Sound::Sample(data_path("chime.wav"));
 	});
+Load< Sound::Sample > chime_sample_low(LoadTagDefault, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("chime_low.wav"));
+	});
+Load< Sound::Sample > chime_sample_high(LoadTagDefault, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("chime_high.wav"));
+	});
 
 PlayMode::PlayMode() : scene(*balance_scene) {
 	for (auto& transform : scene.transforms) {
@@ -122,21 +128,53 @@ void PlayMode::update(float elapsed) {
 		ball->position = glm::vec3(0.0f, 0.0f, 2.0f);
 		ball_acc = glm::vec3(0.0f, 0.0f, 0.0f);
 		ball_vel = glm::vec3(0.0f, 0.0f, 0.0f);
-		wind = glm::vec2(0.0f, 0.0f);
+		wind = glm::vec3(0.0f, 0.0f, 0.0f);
 		old_dist = 2.0f;
 		old_norm = glm::vec3(0.0f, 0.0f, 0.0f);
-		restart = false;
+		counter = 0.0f;
+		Sound::stop_all_samples();
 
-		Sound::play(*chime_sample, 1.0f, 0.0f);
-	}
-	else {
-		if (no_wind) wind = glm::vec2(0.0f, 0.0f);
-		else {
-			wind.x += (rand() / (float)RAND_MAX - 0.5f) * 10.0f * elapsed;
-			wind.y += (rand() / (float)RAND_MAX - 0.5f) * 10.0f * elapsed;
-			wind.x = std::max(-6.0f, std::min(6.0f, wind.x));
-			wind.y = std::max(-6.0f, std::min(6.0f, wind.y));
+		srand((int)time(NULL));
+		if (!no_wind) {
+			wind.x = (float)(rand() % 3 - 1); // -1, 0, or 1
+			wind.y = (float)(rand() % 3 - 1);
+			wind.z = (rand() / (float)RAND_MAX) * 2.0f;
+
+			if (wind.y == -1.0f) {
+				Sound::play(*chime_sample_low, wind.z, wind.x);
+			}
+			else if (wind.y == 0.0f && wind.x != 0.0f) {
+				Sound::play(*chime_sample, wind.z, wind.x);
+			}
+			else if (wind.y == 1.0f) {
+				Sound::play(*chime_sample_high, wind.z, wind.x);
+			}
 		}
+
+		restart = false;
+	}
+
+	if (no_wind) wind = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	if (counter > 15.0f || (wind.x == 0.0f && wind.y == 0.0f)) {
+		srand((int)time(NULL));
+		if (!no_wind) {
+			wind.x = (float)(rand() % 3 - 1); // -1, 0, or 1
+			wind.y = (float)(rand() % 3 - 1);
+			wind.z = (rand() / (float)RAND_MAX) * 2.0f;
+
+			if (wind.y == -1.0f) {
+				Sound::play(*chime_sample_low, wind.z, wind.x);
+			}
+			else if (wind.y == 0.0f && wind.x != 0.0f) {
+				Sound::play(*chime_sample, wind.z, wind.x);
+			}
+			else if (wind.y == 1.0f) {
+				Sound::play(*chime_sample_high, wind.z, wind.x);
+			}
+		}
+
+		counter = 0.0f;
 	}
 
 	// check if ball is touching board
@@ -150,10 +188,10 @@ void PlayMode::update(float elapsed) {
 	}
 
 	// rotate board
-	if (left.pressed && !right.pressed) board_rotation.y -= 0.8f * elapsed;
-	if (!left.pressed && right.pressed) board_rotation.y += 0.8f * elapsed;
-	if (!down.pressed && up.pressed) board_rotation.x -= 0.8f * elapsed;
-	if (down.pressed && !up.pressed) board_rotation.x += 0.8f * elapsed;
+	if (left.pressed && !right.pressed) board_rotation.y -= 0.7f * elapsed;
+	if (!left.pressed && right.pressed) board_rotation.y += 0.7f * elapsed;
+	if (!down.pressed && up.pressed) board_rotation.x -= 0.7f * elapsed;
+	if (down.pressed && !up.pressed) board_rotation.x += 0.7f * elapsed;
 	board_rotation.x = std::max(-float(M_PI) / 6.0f, std::min(float(M_PI) / 6.0f, board_rotation.x));
 	board_rotation.y = std::max(-float(M_PI) / 6.0f, std::min(float(M_PI) / 6.0f, board_rotation.y));
 	board->rotation = board_rotation;
@@ -166,7 +204,7 @@ void PlayMode::update(float elapsed) {
 	norm = glm::normalize(norm);
 
 	// roll ball
-	ball_acc = glm::vec3(wind.x, wind.y, -9.8f);
+	ball_acc = glm::vec3(wind.x * wind.z, wind.y * wind.z, -9.8f);
 	if (touching_board) {
 		ball_acc += norm * 9.8f * std::cos(board_rotation.x) * std::cos(board_rotation.y);
 	}
@@ -208,12 +246,11 @@ void PlayMode::update(float elapsed) {
 		}
 	}
 	
-	// update velocity based on final position of the ball
+	// update parameters
 	if (elapsed > 0) ball_vel = (ball->position - old_pos) / elapsed;
-
-	// update old norm and old dist
 	old_norm = norm;
 	old_dist = dist;
+	counter += elapsed;
 
 	//reset button press counters:
 	left.downs = 0;
