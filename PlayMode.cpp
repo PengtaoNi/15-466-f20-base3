@@ -123,10 +123,11 @@ void PlayMode::update(float elapsed) {
 		ball_acc = glm::vec3(0.0f, 0.0f, 0.0f);
 		ball_vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		wind = glm::vec2(0.0f, 0.0f);
-		on_board = true;
+		old_dist = 2.0f;
+		old_norm = glm::vec3(0.0f, 0.0f, 0.0f);
 		restart = false;
 
-		Sound::play(*chime_sample, 1.0f, 0.0f);;
+		Sound::play(*chime_sample, 1.0f, 0.0f);
 	}
 	else {
 		if (no_wind) wind = glm::vec2(0.0f, 0.0f);
@@ -138,45 +139,56 @@ void PlayMode::update(float elapsed) {
 		}
 	}
 
+	// check if ball is touching board
+	bool touching_board = false;
+	glm::vec3 old_pos = ball->position;
+	glm::vec3 ball_proj = old_pos - old_dist * old_norm;
+	if (std::abs(old_dist - 2.0f) <= 0.01f &&
+		std::abs(ball_proj.x) <= 10.0f * std::cos(board_rotation.y) &&
+		std::abs(ball_proj.y) <= 10.0f * std::cos(board_rotation.x)) {
+		touching_board = true;
+	}
+
 	// rotate board
-	if (left.pressed && !right.pressed) board_rotation.y -= elapsed;
-	if (!left.pressed && right.pressed) board_rotation.y += elapsed;
-	if (!down.pressed && up.pressed) board_rotation.x -= elapsed;
-	if (down.pressed && !up.pressed) board_rotation.x += elapsed;
-	board_rotation.x = std::max(-float(M_PI) / 4.0f, std::min(float(M_PI) / 4.0f, board_rotation.x));
-	board_rotation.y = std::max(-float(M_PI) / 4.0f, std::min(float(M_PI) / 4.0f, board_rotation.y));
+	if (left.pressed && !right.pressed) board_rotation.y -= 0.8f * elapsed;
+	if (!left.pressed && right.pressed) board_rotation.y += 0.8f * elapsed;
+	if (!down.pressed && up.pressed) board_rotation.x -= 0.8f * elapsed;
+	if (down.pressed && !up.pressed) board_rotation.x += 0.8f * elapsed;
+	board_rotation.x = std::max(-float(M_PI) / 6.0f, std::min(float(M_PI) / 6.0f, board_rotation.x));
+	board_rotation.y = std::max(-float(M_PI) / 6.0f, std::min(float(M_PI) / 6.0f, board_rotation.y));
 	board->rotation = board_rotation;
 
-	// check if ball is touching board
-	bool touching_board = true;
-	glm::vec3 old_pos = ball->position;
+	// update norm
 	glm::vec3 norm = glm::vec3(0.0f, 0.0f, 0.0f);
 	norm.x = std::sin(board_rotation.y) * std::cos(board_rotation.x);
 	norm.y = -std::sin(board_rotation.x) * std::cos(board_rotation.y);
 	norm.z = std::cos(board_rotation.x) * std::cos(board_rotation.y);
 	norm = glm::normalize(norm);
-	float dist = old_pos.x * norm.x + old_pos.y * norm.y + old_pos.z * norm.z;
-	if (std::abs(dist - 2.0f) > 0.01f) touching_board = false;
 
 	// roll ball
 	ball_acc = glm::vec3(wind.x, wind.y, -9.8f);
-	if (on_board && touching_board) {
+	if (touching_board) {
 		ball_acc += norm * 9.8f * std::cos(board_rotation.x) * std::cos(board_rotation.y);
 	}
 	ball_vel += ball_acc * elapsed;
 	ball->position += ball_vel * elapsed;
 
 	// check if ball is out of board
-	glm::vec3 ball_proj = ball->position - dist * norm;
+	/*glm::vec3 ball_proj = ball->position - dist * norm;
 	if (std::abs(ball_proj.x) > 10.0f * std::cos(board_rotation.y) ||
 		std::abs(ball_proj.y) > 10.0f * std::cos(board_rotation.x)) {
 		if (dist <= 2.0f) on_board = false;
-	}
+	}*/
 
 	// make sure ball doesn't go through board
-	dist = ball->position.x * norm.x + ball->position.y * norm.y + ball->position.z * norm.z;
-	if (on_board) {
-		if (dist < 2.0f) ball->position += norm * (2.0f - dist);
+	float dist = ball->position.x * norm.x + ball->position.y * norm.y + ball->position.z * norm.z;
+	ball_proj = ball->position - dist * norm;
+	if (std::abs(ball_proj.x) <= 10.0f * std::cos(board_rotation.y) &&
+		std::abs(ball_proj.y) <= 10.0f * std::cos(board_rotation.x)) {
+		if (old_dist >= 2.0f && dist < 2.0f) {
+			ball->position += norm * (2.0f - dist);
+			dist = 2.0f;
+		}
 	}
 	else {
 		// on edge
@@ -198,6 +210,10 @@ void PlayMode::update(float elapsed) {
 	
 	// update velocity based on final position of the ball
 	if (elapsed > 0) ball_vel = (ball->position - old_pos) / elapsed;
+
+	// update old norm and old dist
+	old_norm = norm;
+	old_dist = dist;
 
 	//reset button press counters:
 	left.downs = 0;

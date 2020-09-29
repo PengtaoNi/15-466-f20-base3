@@ -34,10 +34,12 @@ struct PlayMode : Mode {
 	Scene::Transform* ball = nullptr;
 	glm::vec3 board_rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	bool on_board = true;
 	float ball_mass = 1.0f;
 	glm::vec3 ball_acc = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 ball_vel = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	float old_dist = 2.0f;
+	glm::vec3 old_norm = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	glm::vec2 wind = glm::vec2(0.0f, 0.0f);
 	bool no_wind = false;
