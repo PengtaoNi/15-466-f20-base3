@@ -1,8 +1,8 @@
 # (TODO: your game's title)
 
-Author: (TODO: your name)
+Author: Pengtao
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: Balance the ball on the board. There is randomly generated wind and corresponding chiming.
 
 Screen Shot:
 
@@ -10,9 +10,10 @@ Screen Shot:
 
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+Arrows keys to control the rotation of the board. R to restart. W to turn on/off wind.
+The pan, pitch and volume of the chime corresponds to the x direction, y direction, and strength of the wind, respectively.
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+Sources: https://freesound.org/people/mandymatz/sounds/424033/
 
 This game was built with [NEST](NEST.md).
 
