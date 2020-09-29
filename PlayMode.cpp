@@ -138,6 +138,7 @@ void PlayMode::update(float elapsed) {
 
 		srand((int)time(NULL));
 		if (!no_wind) {
+			wind_counter = 0.0f;
 			wind.x = (float)(rand() % 3 - 1); // -1, 0, or 1
 			wind.y = (float)(rand() % 3 - 1);
 			wind.z = (rand() / (float)RAND_MAX) * 2.0f;
@@ -161,6 +162,7 @@ void PlayMode::update(float elapsed) {
 	if (counter > 15.0f || (wind.x == 0.0f && wind.y == 0.0f)) {
 		srand((int)time(NULL));
 		if (!no_wind) {
+			wind_counter = 0.0f;
 			wind.x = (float)(rand() % 3 - 1); // -1, 0, or 1
 			wind.y = (float)(rand() % 3 - 1);
 			wind.z = (rand() / (float)RAND_MAX) * 2.0f;
@@ -206,7 +208,12 @@ void PlayMode::update(float elapsed) {
 	norm = glm::normalize(norm);
 
 	// move ball
-	ball_acc = glm::vec3(wind.x * wind.z, wind.y * wind.z, -9.8f);
+	if (wind_counter <= 8.0f) {
+		ball_acc = glm::vec3(wind.x * wind.z, wind.y * wind.z, -9.8f);
+	}
+	else {
+		ball_acc = glm::vec3(0.0f, 0.0f, -9.8f);
+	}
 	if (touching_board) {
 		ball_acc += norm * 9.8f * std::cos(board_rotation.x) * std::cos(board_rotation.y);
 	}
@@ -253,6 +260,7 @@ void PlayMode::update(float elapsed) {
 	old_norm = norm;
 	old_dist = dist;
 	counter += elapsed;
+	wind_counter += elapsed;
 
 	// rotate ball
 	if (touching_board && ball_vel != glm::vec3(0.0f, 0.0f, 0.0f)) {

@@ -50,6 +50,7 @@ struct PlayMode : Mode {
 	bool no_wind = false;
 
 	float counter = 0.0f;
+	float wind_counter = 0.0f;
 
 	//camera:
 	Scene::Camera* camera = nullptr;
