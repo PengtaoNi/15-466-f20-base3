@@ -128,6 +128,7 @@ void PlayMode::update(float elapsed) {
 		ball->position = glm::vec3(0.0f, 0.0f, 2.0f);
 		ball_acc = glm::vec3(0.0f, 0.0f, 0.0f);
 		ball_vel = glm::vec3(0.0f, 0.0f, 0.0f);
+		ball_rot = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 		wind = glm::vec3(0.0f, 0.0f, 0.0f);
 		old_dist = 2.0f;
 		old_norm = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -203,7 +204,7 @@ void PlayMode::update(float elapsed) {
 	norm.z = std::cos(board_rotation.x) * std::cos(board_rotation.y);
 	norm = glm::normalize(norm);
 
-	// roll ball
+	// move ball
 	ball_acc = glm::vec3(wind.x * wind.z, wind.y * wind.z, -9.8f);
 	if (touching_board) {
 		ball_acc += norm * 9.8f * std::cos(board_rotation.x) * std::cos(board_rotation.y);
@@ -251,6 +252,14 @@ void PlayMode::update(float elapsed) {
 	old_norm = norm;
 	old_dist = dist;
 	counter += elapsed;
+
+	// rotate ball
+	if (touching_board && ball_vel != glm::vec3(0.0f, 0.0f, 0.0f)) {
+		float angle = std::sqrt(ball_vel.x * ball_vel.x + ball_vel.y * ball_vel.y + ball_vel.z * ball_vel.z) * elapsed;
+		glm::vec3 rot_axis = glm::normalize(glm::cross(norm, ball_vel));
+		ball_rot = glm::angleAxis(angle, rot_axis) * ball_rot;
+	}
+	ball->rotation = ball_rot;
 
 	//reset button press counters:
 	left.downs = 0;
@@ -304,13 +313,13 @@ void PlayMode::draw(glm::uvec2 const& drawable_size) {
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));*/
 
-			// draw wind
-		lines.draw(glm::vec3(-0.1f, 0.7f, 0.0f), glm::vec3(-0.1f, 0.9f, 0.0f), glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+		// draw wind
+		/*lines.draw(glm::vec3(-0.1f, 0.7f, 0.0f), glm::vec3(-0.1f, 0.9f, 0.0f), glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		lines.draw(glm::vec3(-0.1f, 0.7f, 0.0f), glm::vec3(0.1f, 0.7f, 0.0f), glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		lines.draw(glm::vec3(0.1f, 0.9f, 0.0f), glm::vec3(-0.1f, 0.9f, 0.0f), glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		lines.draw(glm::vec3(0.1f, 0.7f, 0.0f), glm::vec3(0.1f, 0.9f, 0.0f), glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		glm::vec3 center = glm::vec3(0.0f, 0.8f, 0.0f);
 		glm::vec3 wind_vec = glm::vec3(wind.x / 60.0f, wind.y / 60.0f, 0.0f);
-		lines.draw(center, center + wind_vec, glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+		lines.draw(center, center + wind_vec, glm::u8vec4(0x00, 0x00, 0x00, 0x00));*/
 	}
 }
