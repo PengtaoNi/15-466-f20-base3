@@ -38,6 +38,7 @@ struct PlayMode : Mode {
 	glm::vec3 ball_acc = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 ball_vel = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::quat ball_rot = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+	glm::quat ball_drot = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
 	float old_dist = 2.0f;
 	glm::vec3 old_norm = glm::vec3(0.0f, 0.0f, 0.0f);

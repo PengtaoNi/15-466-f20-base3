@@ -129,6 +129,7 @@ void PlayMode::update(float elapsed) {
 		ball_acc = glm::vec3(0.0f, 0.0f, 0.0f);
 		ball_vel = glm::vec3(0.0f, 0.0f, 0.0f);
 		ball_rot = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		ball_drot = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 		wind = glm::vec3(0.0f, 0.0f, 0.0f);
 		old_dist = 2.0f;
 		old_norm = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -257,8 +258,9 @@ void PlayMode::update(float elapsed) {
 	if (touching_board && ball_vel != glm::vec3(0.0f, 0.0f, 0.0f)) {
 		float angle = std::sqrt(ball_vel.x * ball_vel.x + ball_vel.y * ball_vel.y + ball_vel.z * ball_vel.z) * elapsed;
 		glm::vec3 rot_axis = glm::normalize(glm::cross(norm, ball_vel));
-		ball_rot = glm::angleAxis(angle, rot_axis) * ball_rot;
+		ball_drot = glm::angleAxis(angle, rot_axis);
 	}
+	ball_rot = ball_drot * ball_rot;
 	ball->rotation = ball_rot;
 
 	//reset button press counters:
